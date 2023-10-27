@@ -1796,7 +1796,9 @@ classdef ( ConstructOnLoad = true, Sealed = true ) cwave < handle
                 end
                 
                 % Size it, centered on the monitor
-                nPos   = [nPos(3)/2+nPos(1)-1820/2 nPos(4)/2+nPos(2)-980/2 1820 980];
+                nWd  = min( 1820, nPos(3)-100 );
+                nHt  = min(  980, nPos(4)-100 );
+                nPos = [nPos(3)/2+nPos(1)-nWd/2 nPos(4)/2+nPos(2)-nHt/2 nWd nHt];
             end
             
             % Create the main UI figure
