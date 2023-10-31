@@ -234,19 +234,20 @@ function stData = sub_GetHeader( sFile, bKeepOpen )
         nDiffSS1 = ss(1);   % for propagating SCC's time corrections to all dir entries
         nDiffMM1 = mm(1);
         
-        % if the reported start time is early, increase the minute by one
+        % If the reported start time is early, increase the minute by one
         if ss(1) > 59.0
             mm(1) = mm(1) + 1;
         end
         
-        % add the 0.53 of a sample interval, except for the 62.5 special case.
+        % Add the 0.53 of a sample interval, except for the 62.5 special case.
+        % NB: some vulcans are version 'V1.02' for some reason instead of '1.20'
         if stData.sVer(1) == '8' || stData.sVer(1) == '9'   % Mk II
             ss(1) = 0.0;
             if (stData.nFreq == 62.5) && (ms(1) == 0)
                 ss(1) = 60 - 0.008;
                 mm(1) = mm(1) - 1;
             end
-        elseif stData.sVer(1) == '1'                        % Mk III & Mk IV
+        elseif stData.sVer(1) == '1' || strncmpi( stData.sVer, 'V1', 2 ) % Mk III & Mk IV
             if (stData.nFreq == 62.5) && (ms(1) < 500)
                 ss(1) = 60 - 0.03 / stData.nFreq;
                 mm(1) = mm(1) - 1;

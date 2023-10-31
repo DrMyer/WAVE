@@ -125,9 +125,13 @@ for iRx = onerow( iRxPlot )
         stData = readBinData( stData, 'SkipPts', 0, 'ReadPts', stData.nCntPerCh, 'KeepOpen', false );
     catch Me
         % Dump error to command window & skip to next
+        fclose( 'all' );
         disp( ['ERROR reading: ' oWave.cFiles_Bin{iRx}] );
         disp( Me );
-        fclose( 'all' );
+        disp( '    Call Stack:' );
+        for iStack = 1:numel(Me.stack)
+            fprintf( '      %s (%d)\n', Me.stack(iStack).name, Me.stack(iStack).line );
+        end
         continue;
     end
     
