@@ -522,7 +522,7 @@ function cMsgs = sub_CSEM( tProc, nWindSec, nStackSec, tHarm ...
     % Change the depth of the towed RX if there is a w=[n] time series for it
     tTowZ = tTowZ( tTowZ.DeviceNo == tProc.DeviceNo, : );   % written this way to account for NaN ~= anything
     if height( tTowZ ) > 1
-        tNavRx.Depth(:) = interp1( tTowZ.Time, tTowZ.Depth, tNavRx.Time, 'linear', 'extrap' );
+        tNavRx.Depth(:) = interp1( tTowZ.Time, tTowZ.Depth, tmWind, 'linear', 'extrap' );
     else
         cMsgs{end+1,1} = sprintf( '%s Line %d - no w=[] depth info' ...
             , tProc.RxName, tProc.TowNo );
