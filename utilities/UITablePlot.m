@@ -285,6 +285,12 @@ function [bChgd,tData,cChgLog] = UITablePlot( tData, sX, sY, hParent, sTitle, sP
     % Now that everything is created, cause the first plot
     sub_AxisChg();
     
+    % When the 'No Exponent' toggle is on, I need to actively control the number
+    % of decimals shown in the axis ticks. Using '%g' doesn't achieve what I
+    % want.
+    addlistener( hPlot, 'XLim', 'PostSet', @(src,evt)sub_AxisExp() );
+    addlistener( hPlot, 'YLim', 'PostSet', @(src,evt)sub_AxisExp() );
+    
     % Make the figure visible and run the MODAL figure
     hFig.Visible = true;
     hFig.CloseRequestFcn = @(~,~)sub_Close(false);
@@ -530,11 +536,11 @@ function [bChgd,tData,cChgLog] = UITablePlot( tData, sX, sY, hParent, sTitle, sP
         if hAxExp.Value     % no exponent in tick label display
             if ~bXDate
                 hPlot.XAxis.Exponent        = 0;
-                hPlot.XAxis.TickLabelFormat = '%d';
+                hPlot.XAxis.TickLabelFormat = emb_WhichFmt( hPlot.XLim );
             end
             if ~bYDate
                 hPlot.YAxis.Exponent        = 0;
-                hPlot.YAxis.TickLabelFormat = '%d';
+                hPlot.YAxis.TickLabelFormat = emb_WhichFmt( hPlot.YLim );
             end
         else                % exponent OK, let MatLab decide
             if ~bXDate
@@ -547,6 +553,17 @@ function [bChgd,tData,cChgLog] = UITablePlot( tData, sX, sY, hParent, sTitle, sP
             end
         end
         return;
+        
+        function sFmt = emb_WhichFmt( nLim )
+            % How many decimal pts should be displayed?
+            nDP = 1 - floor( log10( diff( nLim ) ) );
+            if nDP <= 0
+                sFmt = '%d';
+            else
+                sFmt = ['%.' num2str(nDP) 'f'];
+            end
+            return;
+        end
     end % sub_AxisExp
 
     %---------------------------------------------------------------------------

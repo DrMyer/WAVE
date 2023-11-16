@@ -53,7 +53,11 @@ function tGyro = readGyro_MET( cFiles, hUIFig )
         % Convert to simple matrix and datenum
         tGAdd      = copytable( tGyro, height(tbl) );
         tGAdd.Time = tbl.Time;
-        tGAdd.Gyro = tbl.Gyrocompass;
+        if any( strcmpi( tbl.Properties.VariableNames, 'Gyro' ) )   % col can be either 'Gyro' or 'Gyrocompass'
+            tGAdd.Gyro = tbl.Gyro;
+        else
+            tGAdd.Gyro = tbl.Gyrocompass;
+        end
         
         % Combine data
         tGyro = cat( 1, tGyro, tGAdd );

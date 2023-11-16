@@ -19,7 +19,8 @@ try
     % Format is from writetable() of a table made by MET2Table.m
     % The first line is a header line
     c = strsplit( s, ',' );
-    b = any(strcmpi(c,'Time')) & any(strcmpi(c,'Wire_Out'));
+    b = any(strcmpi(c,'Time')) ...
+      & (any(strcmpi(c,'Gyrocompass')) | any(strcmpi(c,'Gyro')));
     
 catch
     b = false;
