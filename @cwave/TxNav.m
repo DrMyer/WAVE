@@ -25,6 +25,33 @@ if ~all( oWave.ValidateCudaCfg( oWave.tableCudaCfg, oWave.hFig, false ) )
     return;
 end
 
+% In some cases, the nav of two barracudas and of one barracuda with wire-out
+% produces distinct and separate tracks. Allow the user to pick which way they
+% want to do it. This allows them to experiment.
+switch( uiconfirm( oWave.hFig, {
+    ['This navigation procedure can use different types of data together to ' ...
+    'achieve a more complete navigation. However sometimes these can produce ' ...
+    'a multi-pathed solution rather than a single one. You can experiment by ' ...
+    'selecting different options here. Which would you like to try?']
+    ''
+    '1 = Use all data'
+    '2 = Only use pings replied to by BOTH barracudas'
+    '3 = Only use pings replied to by ONE barracuda'
+    }, 'iLBL Barracuda Nav', 'Options', {'1','2','3', 'Cancel'} ...
+    , 'DefaultOption', 1, 'CancelOption', 'Cancel' ) )
+case '1'
+    bUse2Barra = true;
+    bUse1Barra = true;
+case '2'
+    bUse2Barra = true;
+    bUse1Barra = false;
+case '3'
+    bUse2Barra = false;
+    bUse1Barra = true;
+otherwise
+    return;
+end
+
 
 % Clear the logs & output tables
 oWave.ClearLogOfType( cwave.sLog_TxNavAction );
@@ -105,6 +132,9 @@ try
             tCuda2(iFrom2,:) = [];
             cCuda{i1st}      = tCuda1;
             cCuda{i2nd}      = tCuda2;
+            if ~bUse2Barra
+                continue;
+            end
             
             % Triangulate
             [nENEN,nFix1,nFix2,nFix3] = Triangulate( ...
@@ -160,11 +190,15 @@ try
     % for simplicity
     %
     oProg.Message = 'Triangulating SUESI using Barracuda & Wire-out ...';
-    tPings = cCuda{1};
-    for iCuda = 2:numel(cCuda)
-        tPings = [tPings; cCuda{iCuda}];
+    if bUse1Barra
+        tPings = cCuda{1};
+        for iCuda = 2:numel(cCuda)
+            tPings = [tPings; cCuda{iCuda}];
+        end
+        tPings = sortrows( tPings, 'Time' );
+    else
+        tPings = copytable( cCuda{1}, 0 );  % get the structure but zero elements
     end
-    tPings = sortrows( tPings, 'Time' );
     clear cCuda
     
     % Triangulate 
