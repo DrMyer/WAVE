@@ -30,6 +30,17 @@ function ExportTow2MARE( oWave )
         return;
     end
     
+    %{
+    FUTURE:
+        - Produce one output data file per tow line. Do this using the
+        stRx.TowNo field. You have to scan all the files first to group them by
+        TowNo. Then for each TowNo group, find the line center (nN0,nE0 below)
+        so that the rotation/translations are the same for each input file.
+        Aggregate the data for each tow, eliminate duplicate Tx positions (there
+        will be some), then output the file.
+        - This is probably a few days work to get right.
+    %}
+    
     % Ask for a folder to export to
     sOutDir = fullfile( oWave.sDir_Main, '_MARE2DEM' );
     if ~isfolder( sOutDir )
@@ -68,6 +79,12 @@ function ExportTow2MARE( oWave )
         [xRx,yRx] = rotTrans( cRotTrans, [], stRead.tNavRx.East,    stRead.tNavRx.North );
         [xTx,yTx] = rotTrans( cRotTrans, [], stRead.tNavSuesi.East, stRead.tNavSuesi.North );
         
+        % Meter precision on location is better than we can expect from nav
+        xRx = round( xRx );
+        yRx = round( yRx );
+        xTx = round( xTx );
+        yTx = round( yTx );
+        
         % Format for Kerry Key's MARE2DEM
         stOut.comment = ['"' sFile '" exported from WAVE project: ' oWave.sFileName];
         stOut.stUTM.grid    = oWave.nUTMZone;
@@ -82,16 +99,17 @@ function ExportTow2MARE( oWave )
         stOut.stCSEM.transmitters       = [
             xTx ...
             yTx ...
-            stRead.tNavSuesi.Depth ...
-            (stRead.tNavSuesi.COG - stOut.stUTM.theta) ...
-            stRead.tNavSuesi.Dip
+            round( stRead.tNavSuesi.Depth ) ...
+            round( stRead.tNavSuesi.COG - stOut.stUTM.theta, 1 ) ...
+            round( stRead.tNavSuesi.Dip, 1 )
             ];
+        stOut.stCSEM.transmitters(:,6)  = oWave.nTxDipLen;  % Vulcan reqs finite dipole
         stOut.stCSEM.transmitterType    = repmat({'edipole'},height(stRead.tNavSuesi),1);
         stOut.stCSEM.receivers          = [
             xRx ...
             yRx ...
-            stRead.tNavRx.Depth ...
-            repmat( [90 0 0], height(stRead.tNavRx), 1 )
+            round( stRead.tNavRx.Depth ) ...
+            repmat( [0 0 0], height(stRead.tNavRx), 1 ) % theta=0 because using Ey as output data type
             ];
         
         % Create the data block - all frequencies, 2 chans (Ey+Ez), amp & phase
