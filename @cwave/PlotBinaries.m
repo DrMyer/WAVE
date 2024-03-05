@@ -43,6 +43,9 @@ end
 % How many of the binaries already have spectrograms plotted?
 cExistList      = getFileList( sPlotDir, '*_spectrogram.png', 'NoTrace', 'NoPath' );
 [~,cBinName]    = fileparts( oWave.cFiles_Bin );
+if ~iscell( cBinName )  % ugh fileparts()! rtns char if given a cell input with only 1 element
+    cBinName = {cBinName};
+end
 bExist = false( size(cBinName) );
 for i = 1:numel(cBinName)
     bExist(i) = any( strncmpi( cBinName{i}, cExistList, length(cBinName{i}) ) );
