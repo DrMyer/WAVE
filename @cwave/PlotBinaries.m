@@ -206,7 +206,7 @@ for iRx = onerow( iRxPlot )
     %% Plot
     
     % Calculate the edge times of each FFT window
-    tmWind = stData.dStart + seconds( 1 : nWindSec : (nCntWind + 1) * nWindSec );
+    tmWind = stData.dStart + seconds( 0 : nWindSec : nCntWind * nWindSec );
     
     % Loop through channels
     iSub = 1;

@@ -11,17 +11,33 @@ function stData = readBinData( sFile, opts )
 %      --OR-- 
 %   stData  - structure returned from an earlier call
 %
-%   opts    - 'Name','value' pairs. Valid options are:
-%       .KeepOpen - (dflt F) T/F to keep file open
+%   OPTIONAL 'Name', 'value' pairs. Valid options are given below. With no
+%       optional values, only the file header is returned and stData.nData will
+%       be empty. If you want data then include EITHER DateFrom & DateTo or
+%       SkipPts and ReadPts.
 %
-%     NB: if the none of the following are included, only the header is rtnd
-%     NB: .SkipPts & .ReadPts must be given together OR .DateFrom & .DateTo
+%       ReadAll - (dflt False) True/False. If T, read & return the entire file.
+%               In this case, SkipPts,ReadPts,DateFrom,DateTo values you pass in
+%               are ignored and all data are returned.
 %
-%       .SkipPts - # of data points PER CHANNEL to skip before reading
-%       .ReadPts - # of data points PER CHANNEL to read
+%       SkipPts - # of data points PER CHANNEL to skip before reading
+%       ReadPts - # of data points PER CHANNEL to read
 %
-%       .DateFrom - starting date of data to read 
-%       .DateTo   - ending date
+%       DateFrom - starting date of data to read 
+%       DateTo   - ending date
+%
+%       KeepOpen - (dflt False) True/False to keep file open. You should only
+%               hold the file open if you are going to be doing a lot of little
+%               reads from it. This isn't recommended. Most files are small
+%               enough to be read entirely into memory in one go, which is
+%               pretty fast these days.
+% Example:
+%   AS TWO SEPARATE STEPS - FIRST THE HEADER THEN SOME DATA
+%       st = readBinData( 'somefolder\GTF1_V1_72Barramundi.bin' );
+%       st = readBinData( st, 'DateFrom', datetime(2022,02,03,16,0,0) ...
+%                           , 'DateTo', datetime(2022,02,03,18,0,0) );
+%   or ALL THE DATA
+%       st = readBinData( 'somefolder\GTF1_V1_72Barramundi.bin', 'ReadAll', true );
 %
 % Returns:
 %   stData  - structure with header info and, if requested, a block of data
@@ -44,7 +60,8 @@ function stData = readBinData( sFile, opts )
 %             fid: 0
 %
 %-------------------------------------------------------------------------------
-% Copyright (C) 2023 David Myer
+% Ground-up rewrite 2023 by David Myer. Based on the old getsio.m which was
+% worked on by Steve Constable, Kerry Key, myself, and hosts of others.
 %
 % This program is free software: you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -55,6 +72,7 @@ function stData = readBinData( sFile, opts )
 %-------------------------------------------------------------------------------
     arguments
         sFile
+        opts.ReadAll    (1,1) logical = false
         opts.KeepOpen   (1,1) logical = false
         opts.SkipPts    (1,1) double = NaN
         opts.ReadPts    (1,1) double = NaN
@@ -67,6 +85,14 @@ function stData = readBinData( sFile, opts )
         stData = sFile;
     else
         stData = sub_GetHeader( sFile, opts.KeepOpen );
+    end
+    
+    % If the caller wants the entire file read, set that up
+    if opts.ReadAll
+        opts.DateFrom   = NaT;
+        opts.DateTo     = NaT;
+        opts.SkipPts    = 0;
+        opts.ReadPts    = stData.nCntPerCh;
     end
     
     % Did the caller request data?
@@ -216,7 +242,7 @@ function stData = sub_GetHeader( sFile, bKeepOpen )
         % Note from getsio.m by SCC. I've integrated his fix in this new code.
         % For a more thorough write-up of this, see the comment block at the
         % bottom of this file. This is from a series of emails.
-        %
+        %----
         % Changes below added by SCC January 2016 to correct start time. The
         % times in the directory are wrong by up to 9 millisec - the instrument
         % DOES start up on the precise wake-up time.  The csemFFT code believes
@@ -230,7 +256,7 @@ function stData = sub_GetHeader( sFile, bKeepOpen )
         % samples that land on the half sample are selected, there is a
         % negligible timing error. Fortunately, the millisecond timer allows us
         % to work out if this happens. Don't ask me why.)
-        %
+        %----
         nDiffSS1 = ss(1);   % for propagating SCC's time corrections to all dir entries
         nDiffMM1 = mm(1);
         
@@ -266,7 +292,7 @@ function stData = sub_GetHeader( sFile, bKeepOpen )
         mm(2:end) = mm(2:end) + nDiffMM1;
         ssOnly    = floor(ss);              % separate out seconds
         ms        = (ss - ssOnly) * 1000;   % and milliseconds
-        %---------- end SCC changes ----------%
+        %---------- end SCC changes from old getsio.m ----------%
         clear ss
         
         % Change the year from a 2 digit year to a four digit year, correct for
