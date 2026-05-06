@@ -1,5 +1,8 @@
 # WAVE
  Workbench for Analysis and Visualization of EM data
+ 
+> [!NOTE]
+> WAVE requires [DavesTools](https://github.com/DrMyer/DavesTools) and [DataMan](https://github.com/DrMyer/DataMan). It *might* also require [mt tools](https://github.com/DrMyer/mt), I don't recall.
 
 ## Note about development decisions:
 
