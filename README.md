@@ -4,6 +4,9 @@
 > [!NOTE]
 > WAVE requires [DavesTools](https://github.com/DrMyer/DavesTools) and [DataMan](https://github.com/DrMyer/DataMan). It *might* also require [mt tools](https://github.com/DrMyer/mt), I don't recall.
 
+> [!TIP]
+> For those who prefer to do things manually, you can find a number of codes in the scriptables & utilities sub-folders that you can extract from WAVE and use stand-alone. If you take that route, then you should also have a look in the [SIO_CSEM](https://github.com/DrMyer/SIO_CSEM) repository which has a plethora of pre-WAVE tools used for almost every SIO survey since 2009.
+
 ## Note about development decisions:
 
 + **TO THE SCIENTISTS, POST-DOCS, PHD STUDENTS** one supreme word of advice:
